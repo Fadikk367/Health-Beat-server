@@ -29,6 +29,15 @@ class MeasurementRepository {
     }
   }
 
+  public async addMany(addMeasurementDtos: AddMeasurementDto[], user: User): Promise<Measurement[]> {
+    try {
+      const result = await this.collection.insertMany(addMeasurementDtos.map(measurement => ({...measurement, userId: user._id})));
+      return result.ops;
+    } catch(err) {
+      throw new Error(err.message);
+    }
+  }
+
   public async findByUserId(userId: ObjectId): Promise<Measurement[]> {
     try {
       const measurements = await this.collection.find({ userId }).toArray();

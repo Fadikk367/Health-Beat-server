@@ -21,6 +21,7 @@ class MeasurementController extends Controller {
 
   protected initializeRoutes(): void {
     this.router.post('/', authUser, validateBodyAs(AddMeasurementDto), this.addMeasurement);
+    this.router.post('/sync', authUser, validateBodyAs(AddMeasurementDto), this.syncMeasurements);
     this.router.get('/', authUser, this.getMeasurements);
     this.router.delete('/:id', authUser, this.deleteMeasurement);
   }
@@ -29,7 +30,7 @@ class MeasurementController extends Controller {
     const addMeasurementDto: AddMeasurementDto = req.body;
     try {
       const addedMeasurement = await this.measurementRepository.addOne(addMeasurementDto, req.user as User);
-      res.status(201).json({ addedMeasurement });
+      res.status(201).json(addedMeasurement);
     } catch(err) {
       next(err);
     }
@@ -39,7 +40,7 @@ class MeasurementController extends Controller {
     try {
       if (req.user) {
         const measurements = await this.measurementRepository.findByUserId(req.user._id);
-        res.status(201).json({ measurements });
+        res.status(201).json(measurements);
       }
     } catch(err) {
       next(err);
@@ -51,6 +52,18 @@ class MeasurementController extends Controller {
     try {
       await this.measurementRepository.deleteOne(measurementId, req.user as User);
       res.status(204).json({ success: true });
+    } catch(err) {
+      next(err);
+    }
+  }
+
+  private syncMeasurements = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    const localMeasurements: AddMeasurementDto[] = req.body;
+    console.log({ localMeasurements });
+
+    try {
+      const addedMeasurement = await this.measurementRepository.addMany(localMeasurements, req.user as User);
+      res.status(201).json(addedMeasurement);
     } catch(err) {
       next(err);
     }
