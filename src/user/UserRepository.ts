@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
-import * as bcrypt from 'bcrypt';
+import http from 'http-errors';
+import * as bcrypt from 'bcryptjs';
 
 import User from './User';
 import client from '../db/Database';
@@ -28,26 +29,30 @@ class UserRepository {
       const result = await this.collection.insertOne({ ...registerUserDto, password: hasedPassword });
       return result.ops[0];
     } catch(err) {
+      if (err.code === 11000) {
+        console.log('duplicate key error');
+        throw new http.BadRequest("User with given email address already exists");
+      }
       throw new Error(err.message);
     }
   }
 
-  public async findOneByEmail(email: string): Promise<User | null> {
-    try {
-      const user = await this.collection.findOne({ email });
-      return user;
-    } catch(err) {
-      throw new Error(err.message);
+  public async findOneByEmail(email: string): Promise<User> {
+    const user = await this.collection.findOne({ email });
+    if (!user) {
+      throw new http.NotFound('Invalid email or password');
     }
+
+    return user;
   }
 
-  public async findOneById(userId: ObjectId): Promise<User | null> {
-    try {
-      const user = await this.collection.findOne({ _id: userId });
-      return user;
-    } catch(err) {
-      throw new Error(err.message);
+  public async findOneById(userId: ObjectId): Promise<User> {
+    const user = await this.collection.findOne({ _id: userId });
+    if (!user) {
+      throw new http.NotFound('Invalid email or password');
     }
+
+    return user;
   }
 }
 

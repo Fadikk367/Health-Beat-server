@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import http from 'http-errors';
 
 import client from '../db/Database';
 import Measurement from './Measurement';
@@ -21,38 +22,30 @@ class MeasurementRepository {
   }
 
   public async addOne(addMeasurementDto: AddMeasurementDto, user: User): Promise<Measurement> {
-    try {
-      const result = await this.collection.insertOne({ ...addMeasurementDto, userId: user._id });
+    const result = await this.collection.insertOne({ ...addMeasurementDto, userId: user._id });
+    if (result.insertedCount === 1) {
       return result.ops[0];
-    } catch(err) {
-      throw new Error(err.message);
+    } else {
+      const error = new http.InternalServerError('Failed to insert new measurement');
+      error.expose = true;
+      throw error;
     }
   }
 
   public async addMany(addMeasurementDtos: AddMeasurementDto[], user: User): Promise<Measurement[]> {
-    try {
-      const result = await this.collection.insertMany(addMeasurementDtos.map(measurement => ({...measurement, userId: user._id})));
-      return result.ops;
-    } catch(err) {
-      throw new Error(err.message);
-    }
+    const result = await this.collection.insertMany(addMeasurementDtos.map(measurement => ({...measurement, userId: user._id})));
+    return result.ops;
   }
 
   public async findByUserId(userId: ObjectId): Promise<Measurement[]> {
-    try {
-      const measurements = await this.collection.find({ userId }).toArray();
-      return measurements;
-    } catch(err) {
-      throw new Error(err.message);
-    }
+    const measurements = await this.collection.find({ userId }).toArray();
+    return measurements;
   }
 
   public async deleteOne(measurementId: ObjectId, user: User): Promise<void> {
-    try {
-      const result = await this.collection.deleteOne({ _id: measurementId, userId: user._id });
-      console.log({ result });
-    } catch(err) {
-      throw new Error(err.message);
+    const result = await this.collection.deleteOne({ _id: measurementId, userId: user._id });
+    if (result.deletedCount === 0) {
+      throw new http.NotFound('Document to delete not found');
     }
   }
 }

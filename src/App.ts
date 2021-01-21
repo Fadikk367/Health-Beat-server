@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 
 import Controller from 'core/Controller';
-
+import errorHandler from './middlewares/errorHandler'
 
 export default class App {
   public app: express.Application;
@@ -14,6 +14,7 @@ export default class App {
 
     this.initializeMiddlewares();
     this.initializeControllers(controllers);
+    this.app.use(errorHandler);
   }
 
   public listen(): void {

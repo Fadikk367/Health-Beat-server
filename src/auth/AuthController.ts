@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
-import * as bcrypt from 'bcrypt';
+import http from 'http-errors';
+import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 
 import Controller from '../core/Controller';
@@ -24,38 +25,43 @@ export default class AuthController extends Controller {
     this.router.post('/register', validateBodyAs(RegisterUserDto), this.signUp);
   }
 
-  private signIn: RequestHandler = async (req, res): Promise<void> => {
+  private signIn: RequestHandler = async (req, res, next): Promise<void> => {
     const authCredentialsDto: AuthCredentialsDto = req.body;
 
-    const user = await this.userRepository.findOneByEmail(authCredentialsDto.email);
-
-    if (user) {
+    try {
+      const user = await this.userRepository.findOneByEmail(authCredentialsDto.email);
       const isPasswordCorrect = await bcrypt.compare(authCredentialsDto.password, user.password);
-
+  
       if (isPasswordCorrect) {
         const TOKEN_SECRET = process.env.TOKEN_SECRET as string;
-
         const token = await jwt.sign({ _id: user._id, firstName: user.firstName, lastName: user.lastName }, TOKEN_SECRET);
 
-        res.status(200).json({ token, user });
+        res.status(200).json({ 
+          token, 
+          user,
+        });
       } else {
-        res.status(404).json({ message: 'Invalid user credentials' });
+        throw new http.NotFound('Invalid email or password');
       }
-    } else {
-      res.status(404).json({ message: 'Invalid user credentials' });
+    } catch(err) {
+      next(err)
     }
   }
 
-  private signUp: RequestHandler = async (req, res): Promise<void> => {
+  private signUp: RequestHandler = async (req, res, next): Promise<void> => {
     const registerUserDto: RegisterUserDto = req.body;
 
-    const user = await this.userRepository.registerUser(registerUserDto);
-    const TOKEN_SECRET = process.env.TOKEN_SECRET as string;
-    const token = await jwt.sign({ _id: user._id, firstName: user.firstName, lastName: user.lastName }, TOKEN_SECRET);
-
-    res.status(201).send({
-      user,
-      token,
-    })
+    try {
+      const user = await this.userRepository.registerUser(registerUserDto);
+      const TOKEN_SECRET = process.env.TOKEN_SECRET as string;
+      const token = await jwt.sign({ _id: user._id, firstName: user.firstName, lastName: user.lastName }, TOKEN_SECRET);
+  
+      res.status(201).send({
+        user,
+        token,
+      });
+    } catch(err) {
+      next(err);
+    }
   }
 }
