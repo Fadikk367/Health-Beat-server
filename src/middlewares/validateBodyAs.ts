@@ -9,9 +9,13 @@ const validateBodyAs = (type: any): RequestHandler => {
     const validationErrors = await validate(parsedBody);
 
     if (validationErrors.length) {
-      const message = validationErrors.map((error: ValidationError) => Object.values(error.constraints as Object)).join(', ');
-      console.log({ message });
-      console.log({ parsedBody });
+      let message = '';
+      if (validationErrors[0].children) {
+        message = 'Invalid nested data structure';
+      } else {
+        message = validationErrors.map((error: ValidationError) => Object.values(error.constraints as Object)).join(', ');
+      }
+
       res.status(400).json({message});
     } else {
       req.body = parsedBody;
