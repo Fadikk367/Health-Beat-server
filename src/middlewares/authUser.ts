@@ -13,16 +13,21 @@ const authUser = async (req: AuthRequest, _: Response, next: NextFunction): Prom
 
   if (token) {
     const TOKEN_SECRET = process.env.TOKEN_SECRET as string;
-    const payload = await jwt.verify(token, TOKEN_SECRET) as AuthTokenPayload;
 
-    const user = await UserRepository.getInstance().findOneById(new ObjectId(payload._id));
+    try {
+      const payload = await jwt.verify(token, TOKEN_SECRET) as AuthTokenPayload;
+      const user = await UserRepository.getInstance().findOneById(new ObjectId(payload._id));
 
-    if (user) {
-      req.user = user;
-      req.user._id = new ObjectId(user._id);
-      next();
-    } else {
-      next(new http.Unauthorized("Unauthorized"));
+      if (user) {
+        req.user = user;
+        req.user._id = new ObjectId(user._id);
+        next();
+      } else {
+        next(new http.Unauthorized("Unauthorized"));
+      }
+
+    } catch(err) {
+      next(err);
     }
   } else {
     next(new http.Unauthorized("Unauthorized"));
