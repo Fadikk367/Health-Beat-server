@@ -13,6 +13,7 @@ export default class App {
     this.port = port;
 
     this.initializeMiddlewares();
+    this.app.get('/', (_, res) => { res.json({ message: "Welcome to health beat api "}) });
     this.initializeControllers(controllers);
     this.app.use(errorHandler);
   }
