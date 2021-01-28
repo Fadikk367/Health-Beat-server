@@ -30,7 +30,6 @@ class UserRepository {
       return result.ops[0];
     } catch(err) {
       if (err.code === 11000) {
-        console.log('duplicate key error');
         throw new http.BadRequest("User with given email address already exists");
       }
       throw new Error(err.message);

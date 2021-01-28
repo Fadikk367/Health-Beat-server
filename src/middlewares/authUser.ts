@@ -1,6 +1,7 @@
 import  { Response, NextFunction } from 'express';
 import { ObjectId } from 'mongodb';
 import * as jwt from 'jsonwebtoken';
+import http from 'http-errors';
 
 import UserRepository from '../user/UserRepository'; 
 import AuthTokenPayload from '../auth/AuthTokenPayload';
@@ -21,10 +22,10 @@ const authUser = async (req: AuthRequest, _: Response, next: NextFunction): Prom
       req.user._id = new ObjectId(user._id);
       next();
     } else {
-      next(new Error("Unauthorized"));
+      next(new http.Unauthorized("Unauthorized"));
     }
   } else {
-    next(new Error("Unauthorized"));
+    next(new http.Unauthorized("Unauthorized"));
   }
 }
 

@@ -4,13 +4,13 @@ import { Expose } from 'class-transformer';
 
 export default class RegisterUserDto {
   @Expose()
-  @IsAlpha('pl-PL', { message: 'First name must only contain letters (a-zA-Z)' })
-  @Length(2, 16, { message: 'First name must have 2 latters at least and 15 letters at most' })
+  @IsAlpha('pl-PL', { message: 'First name can only contain letters (a-zA-Z)' })
+  @Length(2, 16, { message: 'First name can have from 2 to 15 letters' })
   public firstName: string;
 
   @Expose()
-  @IsAlpha('pl-PL', { message: 'Last name must only contain letters (a-zA-Z)' })
-  @Length(2, 16, { message: 'Last name must have 2 latters at least and 15 letters at most' })
+  @IsAlpha('pl-PL', { message: 'Last name can only contain letters (a-zA-Z)' })
+  @Length(2, 16, { message: 'Last name can have from 2 to 15 letters' })
   public lastName: string;
 
   @Expose()
@@ -18,7 +18,7 @@ export default class RegisterUserDto {
   public email: string;
 
   @Expose()
-  @Length(8, 16, { message: 'password must have 8 letters at least and 15 letters at most' })
+  @Length(8, 16, { message: 'Password can have from 8 to 15 letters' })
   public password: string;
 
   @Expose()

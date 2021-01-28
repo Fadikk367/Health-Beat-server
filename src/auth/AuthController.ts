@@ -30,12 +30,13 @@ export default class AuthController extends Controller {
 
     try {
       const user = await this.userRepository.findOneByEmail(authCredentialsDto.email);
-      const isPasswordCorrect = await bcrypt.compare(authCredentialsDto.password, user.password);
+      const isPasswordCorrect = await bcrypt.compare(authCredentialsDto.password, user.password as string);
   
       if (isPasswordCorrect) {
         const TOKEN_SECRET = process.env.TOKEN_SECRET as string;
         const token = await jwt.sign({ _id: user._id, firstName: user.firstName, lastName: user.lastName }, TOKEN_SECRET);
 
+        delete user.password;
         res.status(200).json({ 
           token, 
           user,
@@ -56,6 +57,7 @@ export default class AuthController extends Controller {
       const TOKEN_SECRET = process.env.TOKEN_SECRET as string;
       const token = await jwt.sign({ _id: user._id, firstName: user.firstName, lastName: user.lastName }, TOKEN_SECRET);
   
+      delete user.password;
       res.status(201).send({
         user,
         token,
